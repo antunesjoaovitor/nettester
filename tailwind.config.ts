@@ -12,8 +12,17 @@ export default {
         "2xl": "1400px",
       },
     },
+    fontFamily: {
+      mono: ['JetBrains Mono', 'monospace'],
+      display: ['Space Grotesk', 'sans-serif'],
+    },
     extend: {
       colors: {
+        neon: {
+          DEFAULT: "hsl(142 70% 45%)",
+          dim: "hsl(142 70% 30%)",
+          bright: "hsl(142 70% 60%)",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
