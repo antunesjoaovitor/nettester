@@ -8,21 +8,38 @@ const corsHeaders = {
 const SERVICE_MAP: Record<number, string> = {
   21: "FTP", 22: "SSH", 25: "SMTP", 53: "DNS", 80: "HTTP",
   110: "POP3", 143: "IMAP", 443: "HTTPS", 465: "SMTPS",
-  587: "SMTP-TLS", 993: "IMAPS", 995: "POP3S",
-  3306: "MySQL", 5432: "PostgreSQL", 8080: "HTTP-Alt",
+  587: "SMTP-TLS", 993: "IMAPS", 995: "POP3S", 2525: "SMTP-Alt",
+  3306: "MySQL", 5060: "SIP", 5061: "SIP-TLS", 5432: "PostgreSQL", 8080: "HTTP-Alt",
 };
 
-async function testTcpPort(host: string, port: number, timeout = 5000): Promise<{ port: number; open: boolean; service: string }> {
+async function testTcpPort(host: string, port: number, protocol = "tcp", timeout = 5000): Promise<{ port: number; open: boolean; service: string; protocol: string }> {
   const service = SERVICE_MAP[port] || "Unknown";
   try {
-    const conn = await Promise.race([
-      Deno.connect({ hostname: host, port }),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), timeout)),
-    ]);
+    let conn: Deno.Conn;
+    if (protocol === "tls") {
+      conn = await Promise.race([
+        Deno.connectTls({ hostname: host, port }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), timeout)),
+      ]);
+    } else if (protocol === "udp") {
+      // Deno doesn't have Deno.listenDatagram for outbound easily, try TCP as fallback
+      // UDP test: attempt connect and assume open if no error in timeout
+      conn = await Promise.race([
+        Deno.connect({ hostname: host, port, transport: "tcp" }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), timeout)),
+      ]);
+      (conn as Deno.Conn).close();
+      return { port, open: true, service, protocol: "udp (via tcp fallback)" };
+    } else {
+      conn = await Promise.race([
+        Deno.connect({ hostname: host, port }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), timeout)),
+      ]);
+    }
     (conn as Deno.Conn).close();
-    return { port, open: true, service };
+    return { port, open: true, service, protocol };
   } catch {
-    return { port, open: false, service };
+    return { port, open: false, service, protocol };
   }
 }
 
@@ -231,8 +248,8 @@ serve(async (req) => {
     let result;
     switch (type) {
       case "tcp": {
-        const { host, ports } = body;
-        const results = await Promise.all(ports.map((p: number) => testTcpPort(host, p)));
+        const { host, ports, protocol } = body;
+        const results = await Promise.all(ports.map((p: number) => testTcpPort(host, p, protocol || "tcp")));
         result = { results };
         break;
       }
