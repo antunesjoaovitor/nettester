@@ -7,7 +7,13 @@ import TestCard from "./TestCard";
 import ResultDisplay, { TestStatus } from "./ResultDisplay";
 import { supabase } from "@/integrations/supabase/client";
 
-const COMMON_PORTS = [21, 22, 25, 53, 80, 110, 143, 443, 465, 587, 993, 995, 3306, 5432, 8080];
+const COMMON_PORTS = [21, 22, 25, 53, 80, 110, 143, 443, 465, 587, 993, 995, 2525, 3306, 5060, 5061, 5432, 8080];
+
+const PROTOCOLS = [
+  { value: "tcp", label: "TCP" },
+  { value: "tls", label: "TLS" },
+  { value: "udp", label: "UDP" },
+] as const;
 
 const TcpPortTest = () => {
   const [host, setHost] = useState("");
