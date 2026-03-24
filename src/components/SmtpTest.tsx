@@ -15,9 +15,9 @@ import ResultDisplay, { TestStatus } from "./ResultDisplay";
 import { supabase } from "@/integrations/supabase/client";
 
 const AUTH_METHODS = [
-  { value: "tls", label: "STARTTLS", defaultPort: "587" },
-  { value: "ssl", label: "SSL/TLS", defaultPort: "465" },
-  { value: "plain", label: "Texto Plano (sem criptografia)", defaultPort: "25" },
+  { value: "tls", label: "TLS", defaultPort: "587" },
+  { value: "ssl", label: "SSL", defaultPort: "465" },
+  { value: "plain", label: "Texto Plano sem criptografia", defaultPort: "25" },
   { value: "none", label: "Sem autenticação", defaultPort: "25" },
 ];
 
