@@ -248,8 +248,8 @@ serve(async (req) => {
     let result;
     switch (type) {
       case "tcp": {
-        const { host, ports } = body;
-        const results = await Promise.all(ports.map((p: number) => testTcpPort(host, p)));
+        const { host, ports, protocol } = body;
+        const results = await Promise.all(ports.map((p: number) => testTcpPort(host, p, protocol || "tcp")));
         result = { results };
         break;
       }
