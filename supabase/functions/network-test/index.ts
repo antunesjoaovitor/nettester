@@ -32,12 +32,19 @@ async function testSmtp(host: string, port: number, username: string, password: 
   try {
     const useDirectTls = authMethod === "ssl" || port === 465;
     let conn: Deno.Conn;
+    const CONNECT_TIMEOUT = 10000;
 
     if (useDirectTls) {
-      conn = await Deno.connectTls({ hostname: host, port });
+      conn = await Promise.race([
+        Deno.connectTls({ hostname: host, port }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout: servidor não respondeu em 10s")), CONNECT_TIMEOUT)),
+      ]);
       result.tlsInfo = "Conexão SSL/TLS direta estabelecida";
     } else {
-      conn = await Deno.connect({ hostname: host, port });
+      conn = await Promise.race([
+        Deno.connect({ hostname: host, port }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout: servidor não respondeu em 10s")), CONNECT_TIMEOUT)),
+      ]);
     }
     result.connected = true;
 
@@ -46,7 +53,10 @@ async function testSmtp(host: string, port: number, username: string, password: 
     const buf = new Uint8Array(4096);
 
     const read = async (): Promise<string> => {
-      const n = await conn.read(buf);
+      const n = await Promise.race([
+        conn.read(buf),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout na leitura")), 8000)),
+      ]);
       return n ? decoder.decode(buf.subarray(0, n)) : "";
     };
 
