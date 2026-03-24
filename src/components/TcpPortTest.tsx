@@ -32,7 +32,7 @@ const TcpPortTest = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("network-test", {
-        body: { type: "tcp", host, ports: portList },
+        body: { type: "tcp", host, ports: portList, protocol },
       });
 
       if (error) throw error;
