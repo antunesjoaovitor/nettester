@@ -18,6 +18,8 @@ const PROTOCOLS = [
 const TcpPortTest = () => {
   const [host, setHost] = useState("");
   const [ports, setPorts] = useState("80,443,25,587,993,995,110");
+  const [protocol, setProtocol] = useState<string>("tcp");
+  const [customPort, setCustomPort] = useState("");
   const [status, setStatus] = useState<TestStatus>("idle");
   const [output, setOutput] = useState<string[]>([]);
 
