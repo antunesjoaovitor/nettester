@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# JundiTech Net Tester
 
-TODO: Document your project here
+Ferramenta web para validação de conectividade de rede e autenticação de serviços como SMTP, IMAP, POP3 e teste de portas TCP.
