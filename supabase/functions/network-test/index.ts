@@ -53,7 +53,10 @@ async function testSmtp(host: string, port: number, username: string, password: 
     const buf = new Uint8Array(4096);
 
     const read = async (): Promise<string> => {
-      const n = await conn.read(buf);
+      const n = await Promise.race([
+        conn.read(buf),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout na leitura")), 8000)),
+      ]);
       return n ? decoder.decode(buf.subarray(0, n)) : "";
     };
 
