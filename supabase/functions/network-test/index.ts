@@ -227,8 +227,8 @@ serve(async (req) => {
         break;
       }
       case "smtp": {
-        const { host, port, username, password, sendTest, toEmail } = body;
-        result = await testSmtp(host, port, username, password, sendTest, toEmail);
+        const { host, port, username, password, sendTest, toEmail, authMethod } = body;
+        result = await testSmtp(host, port, username, password, sendTest, toEmail, authMethod);
         break;
       }
       case "imap":
