@@ -8,7 +8,7 @@ const Index = () => {
       <header className="sticky top-0 z-50 border-b border-border bg-header/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-4">
           <img
-            src="/public/junditech.png"
+            src="/junditech.png"
             alt="Logo JundiTech"
             className="h-14 w-14 rounded-xl object-contain"
           />
