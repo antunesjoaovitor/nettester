@@ -8,8 +8,8 @@ const corsHeaders = {
 const SERVICE_MAP: Record<number, string> = {
   21: "FTP", 22: "SSH", 25: "SMTP", 53: "DNS", 80: "HTTP",
   110: "POP3", 143: "IMAP", 443: "HTTPS", 465: "SMTPS",
-  587: "SMTP-TLS", 993: "IMAPS", 995: "POP3S",
-  3306: "MySQL", 5432: "PostgreSQL", 8080: "HTTP-Alt",
+  587: "SMTP-TLS", 993: "IMAPS", 995: "POP3S", 2525: "SMTP-Alt",
+  3306: "MySQL", 5060: "SIP", 5061: "SIP-TLS", 5432: "PostgreSQL", 8080: "HTTP-Alt",
 };
 
 async function testTcpPort(host: string, port: number, timeout = 5000): Promise<{ port: number; open: boolean; service: string }> {
