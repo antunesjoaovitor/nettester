@@ -52,8 +52,26 @@ const TcpPortTest = () => {
   };
 
   return (
-    <TestCard title="Teste de Portas TCP" icon={<Network size={20} />}>
+    <TestCard title="Teste de Portas" icon={<Network size={20} />}>
       <div className="space-y-3">
+        <div>
+          <Label className="text-muted-foreground font-mono text-xs">Protocolo</Label>
+          <div className="mt-1 flex gap-2">
+            {PROTOCOLS.map((p) => (
+              <button
+                key={p.value}
+                onClick={() => setProtocol(p.value)}
+                className={`rounded border px-4 py-1.5 font-mono text-xs uppercase tracking-wider transition-all ${
+                  protocol === p.value
+                    ? "border-primary bg-primary text-primary-foreground shadow-neon"
+                    : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div>
           <Label className="text-muted-foreground font-mono text-xs">Host / IP</Label>
           <Input
@@ -87,6 +105,39 @@ const TcpPortTest = () => {
               {p}
             </button>
           ))}
+        </div>
+        <div className="flex gap-2">
+          <Input
+            value={customPort}
+            onChange={(e) => setCustomPort(e.target.value)}
+            placeholder="Porta personalizada"
+            className="bg-input border-border font-mono text-foreground placeholder:text-muted-foreground"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && customPort.trim()) {
+                const current = ports.split(",").map((x) => x.trim()).filter(Boolean);
+                if (!current.includes(customPort.trim())) {
+                  setPorts([...current, customPort.trim()].join(","));
+                }
+                setCustomPort("");
+              }
+            }}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            className="font-mono text-xs"
+            onClick={() => {
+              if (customPort.trim()) {
+                const current = ports.split(",").map((x) => x.trim()).filter(Boolean);
+                if (!current.includes(customPort.trim())) {
+                  setPorts([...current, customPort.trim()].join(","));
+                }
+                setCustomPort("");
+              }
+            }}
+          >
+            +
+          </Button>
         </div>
         <Button variant="neon" onClick={runTest} disabled={status === "running" || !host}>
           {status === "running" ? "Escaneando..." : "Escanear Portas"}
