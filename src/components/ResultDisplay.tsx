@@ -11,31 +11,38 @@ const ResultDisplay = ({ status, output }: ResultDisplayProps) => {
   if (status === "idle" && output.length === 0) return null;
 
   return (
-    <div className="mt-4 rounded border border-border bg-background p-4 font-mono text-sm">
-      <div className="mb-2 flex items-center gap-2">
+    <div className="mt-4 rounded-2xl border border-border bg-black/30 p-4 text-sm">
+      <div className="mb-3 flex items-center gap-2">
         <span
           className={cn(
-            "h-2 w-2 rounded-full",
+            "h-2.5 w-2.5 rounded-full",
             status === "running" && "animate-pulse bg-yellow-400",
-            status === "success" && "bg-primary",
-            status === "error" && "bg-destructive",
+            status === "success" && "bg-green-500",
+            status === "error" && "bg-red-500",
             status === "idle" && "bg-muted-foreground"
           )}
         />
-        <span className="text-muted-foreground text-xs uppercase tracking-wider">
-          {status === "running" ? "Executando..." : status === "success" ? "Concluído" : status === "error" ? "Erro" : "Aguardando"}
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {status === "running"
+            ? "Executando..."
+            : status === "success"
+            ? "Concluído"
+            : status === "error"
+            ? "Erro"
+            : "Aguardando"}
         </span>
       </div>
-      <div className="space-y-0.5">
+
+      <div className="space-y-1 font-mono">
         {output.map((line, i) => (
           <div
             key={i}
             className={cn(
-              "text-foreground",
-              line.startsWith("[OK]") && "text-primary",
-              line.startsWith("[ERRO]") && "text-destructive",
-              line.startsWith("[INFO]") && "text-muted-foreground",
-              line.startsWith(">") && "text-neon-bright"
+              "break-words text-foreground",
+              line.startsWith("[OK]") && "text-green-400",
+              line.startsWith("[ERRO]") && "text-red-400",
+              line.startsWith("[INFO]") && "text-slate-400",
+              line.startsWith(">") && "text-primary"
             )}
           >
             {line}
