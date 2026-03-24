@@ -26,15 +26,16 @@ async function testTcpPort(host: string, port: number, timeout = 5000): Promise<
   }
 }
 
-async function testSmtp(host: string, port: number, username: string, password: string, sendTest: boolean, toEmail?: string) {
+async function testSmtp(host: string, port: number, username: string, password: string, sendTest: boolean, toEmail?: string, authMethod = "tls") {
   const result: Record<string, any> = { connected: false, authenticated: false };
 
   try {
-    const useTls = port === 465;
+    const useDirectTls = authMethod === "ssl" || port === 465;
     let conn: Deno.Conn;
 
-    if (useTls) {
+    if (useDirectTls) {
       conn = await Deno.connectTls({ hostname: host, port });
+      result.tlsInfo = "Conexão SSL/TLS direta estabelecida";
     } else {
       conn = await Deno.connect({ hostname: host, port });
     }
@@ -60,44 +61,51 @@ async function testSmtp(host: string, port: number, username: string, password: 
     await write(`EHLO netprobe`);
     const ehloResp = await read();
 
-    // STARTTLS if not already TLS
-    if (!useTls && port === 587 && ehloResp.includes("STARTTLS")) {
+    // STARTTLS if requested
+    if (authMethod === "tls" && !useDirectTls && ehloResp.includes("STARTTLS")) {
       await write("STARTTLS");
       await read();
       conn = await Deno.startTls(conn as Deno.TcpConn, { hostname: host });
+      result.tlsInfo = "STARTTLS negociado com sucesso";
       await write(`EHLO netprobe`);
       await read();
     }
 
-    // AUTH LOGIN
-    await write("AUTH LOGIN");
-    const authResp = await read();
-    if (authResp.startsWith("334")) {
-      await write(btoa(username));
-      await read();
-      await write(btoa(password));
-      const passResp = await read();
-      if (passResp.startsWith("235")) {
-        result.authenticated = true;
+    // Skip auth if method is "none"
+    if (authMethod !== "none" && username && password) {
+      // AUTH LOGIN
+      await write("AUTH LOGIN");
+      const authResp = await read();
+      if (authResp.startsWith("334")) {
+        await write(btoa(username));
+        await read();
+        await write(btoa(password));
+        const passResp = await read();
+        if (passResp.startsWith("235")) {
+          result.authenticated = true;
+        } else {
+          result.authError = passResp.trim();
+        }
       } else {
-        result.authError = passResp.trim();
+        // Try AUTH PLAIN
+        const authStr = btoa(`\0${username}\0${password}`);
+        await write(`AUTH PLAIN ${authStr}`);
+        const plainResp = await read();
+        if (plainResp.startsWith("235")) {
+          result.authenticated = true;
+        } else {
+          result.authError = plainResp.trim();
+        }
       }
-    } else {
-      // Try AUTH PLAIN
-      const authStr = btoa(`\0${username}\0${password}`);
-      await write(`AUTH PLAIN ${authStr}`);
-      const plainResp = await read();
-      if (plainResp.startsWith("235")) {
-        result.authenticated = true;
-      } else {
-        result.authError = plainResp.trim();
-      }
+    } else if (authMethod === "none") {
+      result.authenticated = true;
     }
 
     // Send test email if requested
     if (result.authenticated && sendTest && toEmail) {
       try {
-        await write(`MAIL FROM:<${username}>`);
+        const fromAddr = username || `netprobe@${host}`;
+        await write(`MAIL FROM:<${fromAddr}>`);
         await read();
         await write(`RCPT TO:<${toEmail}>`);
         await read();
@@ -105,7 +113,7 @@ async function testSmtp(host: string, port: number, username: string, password: 
         await read();
         const date = new Date().toUTCString();
         await write(
-          `From: NetProbe <${username}>\r\nTo: ${toEmail}\r\nSubject: NetProbe - Teste SMTP\r\nDate: ${date}\r\n\r\nEste é um email de teste enviado pelo NetProbe.\r\n.`
+          `From: NetProbe <${fromAddr}>\r\nTo: ${toEmail}\r\nSubject: NetProbe - Teste SMTP\r\nDate: ${date}\r\n\r\nEste é um email de teste enviado pelo NetProbe.\r\n.`
         );
         const sendResp = await read();
         result.emailSent = sendResp.startsWith("250");
